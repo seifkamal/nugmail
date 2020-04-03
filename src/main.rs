@@ -35,16 +35,15 @@ fn main() {
 
             let storage_connection = sqlite::default_connection().unwrap();
             let mut storage = sqlite::EmailStorage::new(&storage_connection).unwrap();
-            storage.save(address).unwrap();
+            storage.save_address(address).unwrap();
         }
         ("inbox", Some(cmd)) => {
-            let storage_connection = sqlite::default_connection().unwrap();
-            let mut storage = sqlite::EmailStorage::new(&storage_connection).unwrap();
-
             let address = Address::from(cmd.value_of("address").unwrap());
-            let inbox = storage.inbox(address).unwrap();
+            let storage_connection = sqlite::default_connection().unwrap();
+            let storage = sqlite::EmailStorage::new(&storage_connection).unwrap();
+            let client = generator::webhook_site::Client::new();
 
-            tui::render_inbox(&inbox)
+            tui::render_inbox(address, storage, client)
         }
         _ => unreachable!(),
     }
