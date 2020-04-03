@@ -3,8 +3,9 @@ use std::fmt;
 use std::error;
 
 pub trait Store {
-    fn save(&mut self, address: Address) -> Result<(), Error>;
-    fn inbox(&mut self, address: Address) -> Result<Inbox, Error>;
+    fn save_address(&mut self, address: Address) -> Result<(), Error>;
+    fn save_inbox(&mut self, inbox: &Inbox) -> Result<(), Error>;
+    fn inbox(&mut self, address: &Address) -> Result<Inbox, Error>;
 }
 
 #[derive(Debug)]

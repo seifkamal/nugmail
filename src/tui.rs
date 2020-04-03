@@ -1,13 +1,19 @@
-use crate::email::Inbox;
+use crate::email::Address;
+use crate::generator::Service;
+use crate::storage::Store;
 use dialoguer::{theme::ColorfulTheme, Select};
 use termion::{clear, cursor, screen, input::TermRead};
 use std::io::{Write, stdin, stdout};
 
-pub fn render_inbox(inbox: &Inbox) {
+pub fn render_inbox<S: Store, C: Service>(address: Address, mut storage: S, client: C) {
     let mut screen = screen::AlternateScreen::from(stdout());
 
     loop {
         clear_screen(&mut screen);
+
+        let updated_inbox = client.inbox(&address).unwrap();
+        storage.save_inbox(&updated_inbox).unwrap();
+        let inbox = storage.inbox(&address).unwrap();
 
         let theme = &ColorfulTheme::default();
         let mut select = Select::with_theme(theme);
@@ -31,7 +37,7 @@ pub fn render_inbox(inbox: &Inbox) {
                         break;
                     }
                 }
-            },
+            }
             None => break
         }
     }
