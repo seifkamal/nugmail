@@ -16,16 +16,20 @@ pub fn default_connection() -> Result<Connection, StdError> {
 
 pub struct EmailStorage<'a> {
     save_address_statement: Statement<'a>,
+    delete_address_statement: Statement<'a>,
     get_addresses_statement: Statement<'a>,
     save_message_statement: Statement<'a>,
     get_inbox_statement: Statement<'a>,
 }
 
 impl<'a> EmailStorage<'a> {
-    pub fn new<'b>(connection: &'a Connection) -> Result<Self, StdError> {
+    pub fn new(connection: &'a Connection) -> Result<Self, StdError> {
+        connection.execute("PRAGMA foreign_keys=on", NO_PARAMS).unwrap();
+
         Ok(
             EmailStorage {
                 save_address_statement: connection.prepare("INSERT OR IGNORE INTO email_addresses (address) VALUES (:address)")?,
+                delete_address_statement: connection.prepare("DELETE FROM email_addresses WHERE address=:address")?,
                 get_addresses_statement: connection.prepare("SELECT * FROM email_addresses")?,
                 save_message_statement: connection.prepare("INSERT OR IGNORE INTO emails (remote_id, sender, recipient, subject, body, received_at) VALUES (:remote_id, :sender, :recipient, :subject, :body, :received_at)")?,
                 get_inbox_statement: connection.prepare("SELECT * FROM emails WHERE recipient=:address")?,
@@ -49,6 +53,11 @@ impl Store for EmailStorage<'_> {
         }
 
         Ok(addresses)
+    }
+
+    fn delete_address(&mut self, address: &Address) -> Result<(), Error> {
+        self.delete_address_statement.execute_named(&[(":address", address)])?;
+        Ok(())
     }
 
     fn save_inbox(&mut self, inbox: &Inbox) -> Result<(), Error> {

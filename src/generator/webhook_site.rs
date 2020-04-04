@@ -71,4 +71,14 @@ impl Service for Client {
 
         Ok(Inbox::new(address.clone(), messages))
     }
+
+    fn delete(&self, address: &Address) -> Result<(), StdError> {
+        delete(format!(
+            "{}/token/{}",
+            Client::API_URL,
+            address.token()
+        ))?;
+
+        Ok(())
+    }
 }
