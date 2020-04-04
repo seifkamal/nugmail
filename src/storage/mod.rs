@@ -1,9 +1,10 @@
-use crate::email::{Address, Inbox};
+use crate::email::{Address, Addresses, Inbox};
 use std::fmt;
 use std::error;
 
 pub trait Store {
     fn save_address(&mut self, address: Address) -> Result<(), Error>;
+    fn addresses(&mut self) -> Result<Addresses, Error>;
     fn save_inbox(&mut self, inbox: &Inbox) -> Result<(), Error>;
     fn inbox(&mut self, address: &Address) -> Result<Inbox, Error>;
 }

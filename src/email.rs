@@ -35,6 +35,8 @@ impl fmt::Display for Address {
     }
 }
 
+pub type Addresses = Vec<Address>;
+
 #[derive(Debug)]
 pub struct Message {
     remote_id: String,

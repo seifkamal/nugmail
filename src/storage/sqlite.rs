@@ -1,7 +1,7 @@
 use crate::StdError;
-use crate::email::{Address, Inbox, Messages, Message};
+use crate::email::{Address, Inbox, Messages, Message, Addresses};
 use crate::storage::{Store, Error};
-use rusqlite::{Connection, Error as RusqliteError, Statement, Row, ToSql};
+use rusqlite::{Connection, Error as RusqliteError, Statement, Row, ToSql, NO_PARAMS};
 use rusqlite::types::{FromSql, FromSqlResult, ValueRef, ToSqlOutput};
 
 const DEFAULT_FILE: &'static str = "nugmail.db";
@@ -16,6 +16,7 @@ pub fn default_connection() -> Result<Connection, StdError> {
 
 pub struct EmailStorage<'a> {
     save_address_statement: Statement<'a>,
+    get_addresses_statement: Statement<'a>,
     save_message_statement: Statement<'a>,
     get_inbox_statement: Statement<'a>,
 }
@@ -25,6 +26,7 @@ impl<'a> EmailStorage<'a> {
         Ok(
             EmailStorage {
                 save_address_statement: connection.prepare("INSERT OR IGNORE INTO email_addresses (address) VALUES (:address)")?,
+                get_addresses_statement: connection.prepare("SELECT * FROM email_addresses")?,
                 save_message_statement: connection.prepare("INSERT OR IGNORE INTO emails (remote_id, sender, recipient, subject, body, received_at) VALUES (:remote_id, :sender, :recipient, :subject, :body, :received_at)")?,
                 get_inbox_statement: connection.prepare("SELECT * FROM emails WHERE recipient=:address")?,
             }
@@ -36,6 +38,17 @@ impl Store for EmailStorage<'_> {
     fn save_address(&mut self, address: Address) -> Result<(), Error> {
         self.save_address_statement.execute_named(&[(":address", &address)])?;
         Ok(())
+    }
+
+    fn addresses(&mut self) -> Result<Addresses, Error> {
+        let mut rows = self.get_addresses_statement.query(NO_PARAMS)?;
+
+        let mut addresses = Addresses::new();
+        while let Some(row) = rows.next()? {
+            addresses.push(row.get_unwrap::<_, Address>(1))
+        }
+
+        Ok(addresses)
     }
 
     fn save_inbox(&mut self, inbox: &Inbox) -> Result<(), Error> {
@@ -56,7 +69,7 @@ impl Store for EmailStorage<'_> {
     fn inbox(&mut self, address: &Address) -> Result<Inbox, Error> {
         let rows = self.get_inbox_statement.query_map_named::<Message, _>(
             &[(":address", address)],
-            |row| Ok(Message::from(row))
+            |row| Ok(Message::from(row)),
         )?;
 
         let mut messages = Messages::new();
