@@ -39,12 +39,12 @@ fn main() {
         )
         .get_matches();
 
+    let storage_connection = sqlite::default_connection().unwrap();
+    let mut storage = sqlite::Storage::new(&storage_connection).unwrap();
+
     match matches.subcommand() {
         ("list", _) => {
-            let storage_connection = sqlite::default_connection().unwrap();
-            let mut storage = sqlite::Storage::new(&storage_connection).unwrap();
             let addresses = storage.addresses().unwrap();
-
             for address in addresses.iter() {
                 println!("{}", address);
             }
@@ -52,26 +52,20 @@ fn main() {
         ("new", _) => {
             let client = generator::webhook_site::Client::new();
             let address = client.generate().unwrap();
-            println!("{}", address);
 
-            let storage_connection = sqlite::default_connection().unwrap();
-            let mut storage = sqlite::Storage::new(&storage_connection).unwrap();
+            println!("{}", address);
             storage.save_address(address).unwrap();
         }
         ("delete", Some(cmd)) => {
             let address = Address::from(cmd.value_of("address").unwrap());
             let client = generator::webhook_site::Client::new();
-            client.delete(&address).unwrap();
 
-            let storage_connection = sqlite::default_connection().unwrap();
-            let mut storage = sqlite::Storage::new(&storage_connection).unwrap();
+            client.delete(&address).unwrap();
             storage.delete_address(&address).unwrap();
             println!("Address successfully deleted");
         }
         ("inbox", Some(cmd)) => {
             let address = Address::from(cmd.value_of("address").unwrap());
-            let storage_connection = sqlite::default_connection().unwrap();
-            let storage = sqlite::Storage::new(&storage_connection).unwrap();
             let client = generator::webhook_site::Client::new();
 
             tui::render_inbox(address, storage, client);
