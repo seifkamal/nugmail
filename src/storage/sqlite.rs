@@ -34,7 +34,7 @@ impl<'a> EmailStorage<'a> {
 
 impl Store for EmailStorage<'_> {
     fn save_address(&mut self, address: Address) -> Result<(), Error> {
-        self.save_address_statement.execute_named(&[(":address", address.as_str())])?;
+        self.save_address_statement.execute_named(&[(":address", &address)])?;
         Ok(())
     }
 
@@ -55,7 +55,7 @@ impl Store for EmailStorage<'_> {
 
     fn inbox(&mut self, address: &Address) -> Result<Inbox, Error> {
         let rows = self.get_inbox_statement.query_map_named::<Message, _>(
-            &[(":address", address.as_str())],
+            &[(":address", address)],
             |row| Ok(Message::from(row))
         )?;
 

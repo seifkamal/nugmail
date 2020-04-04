@@ -8,7 +8,7 @@ impl Address {
         Address(address.to_string())
     }
 
-    pub fn as_str(&self) -> &String {
+    pub fn as_str(&self) -> &str {
         &self.0
     }
 }
