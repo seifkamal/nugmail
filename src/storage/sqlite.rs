@@ -83,7 +83,7 @@ impl Store for EmailStorage<'_> {
 
 impl FromSql for Address {
     fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
-        Ok(Address::new(value.as_str()?))
+        Ok(Address::from(value.as_str()?))
     }
 }
 

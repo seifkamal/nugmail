@@ -47,7 +47,7 @@ impl Service for Client {
     fn generate(&self) -> Result<Address, StdError> {
         let response = post(format!("{}/token", Self::API_URL), "")?.json::<TokenResponse>()?;
         let address = format!("{}@{}", response.uuid, Self::EMAIL_DOMAIN);
-        Ok(Address::new(&address))
+        Ok(Address::from(address.as_str()))
     }
 
     fn inbox(&self, address: &Address) -> Result<Inbox, StdError> {

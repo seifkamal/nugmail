@@ -4,10 +4,6 @@ use std::fmt;
 pub struct Address(String);
 
 impl Address {
-    pub fn new(address: &str) -> Self {
-        Address(address.to_string())
-    }
-
     pub fn as_str(&self) -> &str {
         &self.0
     }
@@ -15,7 +11,7 @@ impl Address {
 
 impl Clone for Address {
     fn clone(&self) -> Self {
-        Address::new(self.as_str())
+        Address::from(self.as_str())
     }
 
     fn clone_from(&mut self, source: &Self) {
@@ -25,7 +21,7 @@ impl Clone for Address {
 
 impl From<&str> for Address {
     fn from(address: &str) -> Self {
-        Address::new(address)
+        Address(address.to_string())
     }
 }
 
