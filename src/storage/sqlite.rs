@@ -39,8 +39,8 @@ impl<'a> Storage<'a> {
 }
 
 impl Store for Storage<'_> {
-    fn save_address(&mut self, address: Address) -> Result<(), Error> {
-        self.save_address_statement.execute_named(&[(":address", &address)])?;
+    fn save_address(&mut self, address: &Address) -> Result<(), Error> {
+        self.save_address_statement.execute_named(&[(":address", address)])?;
         Ok(())
     }
 

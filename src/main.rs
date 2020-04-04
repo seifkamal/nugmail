@@ -54,7 +54,7 @@ fn main() {
             let address = client.generate().unwrap();
 
             println!("{}", address);
-            storage.save_address(address).unwrap();
+            storage.save_address(&address).unwrap();
         }
         ("delete", Some(cmd)) => {
             let address = Address::from(cmd.value_of("address").unwrap());
