@@ -63,8 +63,8 @@ impl Store for Storage {
                     (":remote_id", message.remote_id()),
                     (":sender", message.sender()),
                     (":recipient", message.recipient()),
-                    (":subject", message.subject().unwrap()),
-                    (":body", message.body().unwrap()),
+                    (":subject", &message.subject()),
+                    (":body", &message.body()),
                     (":received_at", message.received_at()),
                 ]
             )?;
