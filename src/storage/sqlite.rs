@@ -82,7 +82,7 @@ impl Store for Storage {
 
         let mut messages = Messages::new();
         for row in rows.into_iter() {
-            messages.push(row.unwrap());
+            messages.push(row?);
         }
 
         Ok(Inbox::new(address.clone(), messages))
