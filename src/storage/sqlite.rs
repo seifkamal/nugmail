@@ -4,16 +4,10 @@ use crate::storage::{Store, Error};
 use rusqlite::{Connection, Error as RusqliteError, Row, ToSql, NO_PARAMS};
 use rusqlite::types::{FromSql, FromSqlResult, ValueRef, ToSqlOutput};
 
-const DEFAULT_FILE: &'static str = "nugmail.db";
-
 pub fn new_connection(file_path: &str) -> Result<Connection, StdError> {
     let connection = Connection::open(file_path)?;
     connection.pragma_update(None, "foreign_keys", &"on")?;
     Ok(connection)
-}
-
-pub fn default_connection() -> Result<Connection, StdError> {
-    new_connection(DEFAULT_FILE)
 }
 
 pub struct Storage {
@@ -21,8 +15,8 @@ pub struct Storage {
 }
 
 impl Storage {
-    pub fn new(connection: Connection) -> Result<Self, StdError> {
-        Ok(Storage { connection })
+    pub fn new(connection: Connection) -> Self {
+        Storage { connection }
     }
 }
 
@@ -86,6 +80,12 @@ impl Store for Storage {
         }
 
         Ok(Inbox::new(address.clone(), messages))
+    }
+}
+
+impl Default for Storage {
+    fn default() -> Self {
+        Storage::new(new_connection("nugmail.db").unwrap())
     }
 }
 

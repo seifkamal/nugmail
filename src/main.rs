@@ -39,8 +39,7 @@ fn main() {
         )
         .get_matches();
 
-    let storage_connection = sqlite::default_connection().unwrap();
-    let mut storage = sqlite::Storage::new(storage_connection).unwrap();
+    let mut storage: sqlite::Storage = Default::default();
 
     match matches.subcommand() {
         ("list", _) => {
