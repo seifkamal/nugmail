@@ -23,9 +23,27 @@ impl Storage {
 }
 
 impl Store for Storage {
+    fn address(&mut self, address: &str) -> Result<email::Address, Error> {
+        let mut stmt = self.connection.prepare("SELECT * FROM email_addresses WHERE address=:address")?;
+        let mut rows = stmt.query_named(&[(":address", &address)])?;
+
+        match rows.next()? {
+            Some(row) => Ok(row.get_unwrap::<_, email::Address>(1)),
+            None => Err(Error::NotFound)
+        }
+    }
+
     fn save_address(&mut self, address: &email::Address) -> Result<(), Error> {
         self.connection.execute_named(
             "INSERT OR IGNORE INTO email_addresses (address) VALUES (:address)",
+            &[(":address", address)],
+        )?;
+        Ok(())
+    }
+
+    fn delete_address(&mut self, address: &email::Address) -> Result<(), Error> {
+        self.connection.execute_named(
+            "DELETE FROM email_addresses WHERE address=:address",
             &[(":address", address)],
         )?;
         Ok(())
@@ -43,13 +61,19 @@ impl Store for Storage {
         Ok(addresses)
     }
 
-
-    fn delete_address(&mut self, address: &email::Address) -> Result<(), Error> {
-        self.connection.execute_named(
-            "DELETE FROM email_addresses WHERE address=:address",
+    fn inbox(&mut self, address: &email::Address) -> Result<email::Inbox, Error> {
+        let mut stmt = self.connection.prepare("SELECT * FROM emails WHERE recipient=:address")?;
+        let rows = stmt.query_map_named::<email::Message, _>(
             &[(":address", address)],
+            |row| Ok(email::Message::from(row)),
         )?;
-        Ok(())
+
+        let mut messages = email::Messages::new();
+        for row in rows.into_iter() {
+            messages.push(row?);
+        }
+
+        Ok(email::Inbox::new(address.clone(), messages))
     }
 
     fn save_inbox(&mut self, inbox: &email::Inbox) -> Result<(), Error> {
@@ -68,21 +92,6 @@ impl Store for Storage {
         }
 
         Ok(())
-    }
-
-    fn inbox(&mut self, address: &email::Address) -> Result<email::Inbox, Error> {
-        let mut stmt = self.connection.prepare("SELECT * FROM emails WHERE recipient=:address")?;
-        let rows = stmt.query_map_named::<email::Message, _>(
-            &[(":address", address)],
-            |row| Ok(email::Message::from(row)),
-        )?;
-
-        let mut messages = email::Messages::new();
-        for row in rows.into_iter() {
-            messages.push(row?);
-        }
-
-        Ok(email::Inbox::new(address.clone(), messages))
     }
 }
 

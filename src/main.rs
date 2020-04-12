@@ -3,7 +3,6 @@ mod tui;
 use clap::{App, AppSettings, Arg, SubCommand};
 
 use nugmail::{
-    email::Address,
     generator::{Service, webhook_site},
     storage::{Store, sqlite},
 };
@@ -54,18 +53,22 @@ fn main() {
             storage.save_address(&address).unwrap();
         }
         ("delete", Some(cmd)) => {
-            let address = Address::from(cmd.value_of("address").unwrap());
-            let client = webhook_site::Client::new();
+            match storage.address(cmd.value_of("address").unwrap()) {
+                Ok(address) => {
+                    let client = webhook_site::Client::new();
 
-            client.delete(&address).unwrap();
-            storage.delete_address(&address).unwrap();
-            println!("Address successfully deleted");
+                    client.delete(&address).unwrap();
+                    storage.delete_address(&address).unwrap();
+                    println!("Address successfully deleted");
+                }
+                Err(_) => println!("Address does not exist")
+            }
         }
         ("inbox", Some(cmd)) => {
-            let address = Address::from(cmd.value_of("address").unwrap());
-            let client = webhook_site::Client::new();
-
-            tui::render_inbox(address, storage, client);
+            match storage.address(cmd.value_of("address").unwrap()) {
+                Ok(address) => tui::render_inbox(address, storage, webhook_site::Client::new()),
+                Err(_) => println!("Address does not exist")
+            }
         }
         _ => unreachable!(),
     }
