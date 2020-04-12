@@ -1,5 +1,5 @@
-use std::fmt;
 use std::error;
+use std::fmt;
 
 #[derive(Debug)]
 pub enum Error {
@@ -19,7 +19,7 @@ impl error::Error for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::NotFound => writeln!(f, "Could not find record matching email address", ),
+            Error::NotFound => writeln!(f, "Could not find record matching email address",),
             Error::OperationFailed(error) => writeln!(f, "Storage operation failed: {}", error),
         }
     }

@@ -1,11 +1,7 @@
 use isahc::ResponseExt;
 use std::collections::HashMap;
 
-use crate::{
-    email,
-    generator::Service,
-    StdError,
-};
+use crate::{email, generator::Service, StdError};
 
 trait Token {
     fn token(&self) -> &str;
@@ -17,14 +13,12 @@ impl Token for email::Address {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Client {}
 
 impl Client {
     const API_URL: &'static str = "https://webhook.site";
     const EMAIL_DOMAIN: &'static str = "email.webhook.site";
-
-    pub fn new() -> Self { Client {} }
 }
 
 #[derive(Debug, serde::Deserialize)]
@@ -43,12 +37,13 @@ struct MessagesResponseItem {
 
 #[derive(Debug, serde::Deserialize)]
 struct MessagesResponse {
-    data: Vec<MessagesResponseItem>
+    data: Vec<MessagesResponseItem>,
 }
 
 impl Service for Client {
     fn generate(&self) -> Result<email::Address, StdError> {
-        let response = isahc::post(format!("{}/token", Self::API_URL), "")?.json::<TokenResponse>()?;
+        let response =
+            isahc::post(format!("{}/token", Self::API_URL), "")?.json::<TokenResponse>()?;
         let address = format!("{}@{}", response.uuid, Self::EMAIL_DOMAIN);
         Ok(email::Address::from(address.as_str()))
     }
@@ -58,7 +53,8 @@ impl Service for Client {
             "{}/token/{}/requests",
             Client::API_URL,
             address.token()
-        ))?.json::<MessagesResponse>()?;
+        ))?
+        .json::<MessagesResponse>()?;
 
         let mut messages = email::Messages::new();
         for item in response.data.iter() {
@@ -76,11 +72,7 @@ impl Service for Client {
     }
 
     fn delete(&self, address: &email::Address) -> Result<(), StdError> {
-        isahc::delete(format!(
-            "{}/token/{}",
-            Client::API_URL,
-            address.token()
-        ))?;
+        isahc::delete(format!("{}/token/{}", Client::API_URL, address.token()))?;
 
         Ok(())
     }

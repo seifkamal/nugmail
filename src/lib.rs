@@ -1,5 +1,5 @@
 pub mod email;
-pub mod storage;
 pub mod generator;
+pub mod storage;
 
 type StdError = Box<dyn std::error::Error>;

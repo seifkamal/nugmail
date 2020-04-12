@@ -1,9 +1,9 @@
 use rusqlite::types;
 
 use crate::{
-    StdError,
     email,
-    storage::{Store, error::Error},
+    storage::{error::Error, Store},
+    StdError,
 };
 
 pub fn new_connection(file_path: &str) -> Result<rusqlite::Connection, StdError> {
@@ -24,12 +24,14 @@ impl Storage {
 
 impl Store for Storage {
     fn address(&mut self, address: &str) -> Result<email::Address, Error> {
-        let mut stmt = self.connection.prepare("SELECT * FROM email_addresses WHERE address=:address")?;
+        let mut stmt = self
+            .connection
+            .prepare("SELECT * FROM email_addresses WHERE address=:address")?;
         let mut rows = stmt.query_named(&[(":address", &address)])?;
 
         match rows.next()? {
             Some(row) => Ok(row.get_unwrap::<_, email::Address>(1)),
-            None => Err(Error::NotFound)
+            None => Err(Error::NotFound),
         }
     }
 
@@ -62,11 +64,12 @@ impl Store for Storage {
     }
 
     fn inbox(&mut self, address: &email::Address) -> Result<email::Inbox, Error> {
-        let mut stmt = self.connection.prepare("SELECT * FROM emails WHERE recipient=:address")?;
-        let rows = stmt.query_map_named::<email::Message, _>(
-            &[(":address", address)],
-            |row| Ok(email::Message::from(row)),
-        )?;
+        let mut stmt = self
+            .connection
+            .prepare("SELECT * FROM emails WHERE recipient=:address")?;
+        let rows = stmt.query_map_named::<email::Message, _>(&[(":address", address)], |row| {
+            Ok(email::Message::from(row))
+        })?;
 
         let mut messages = email::Messages::new();
         for row in rows.into_iter() {
@@ -109,7 +112,9 @@ impl types::FromSql for email::Address {
 
 impl rusqlite::ToSql for email::Address {
     fn to_sql(&self) -> Result<types::ToSqlOutput<'_>, rusqlite::Error> {
-        Ok(types::ToSqlOutput::Borrowed(types::ValueRef::Text(self.as_str().as_ref())))
+        Ok(types::ToSqlOutput::Borrowed(types::ValueRef::Text(
+            self.as_str().as_ref(),
+        )))
     }
 }
 

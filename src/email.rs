@@ -52,7 +52,14 @@ impl Message {
         body: Option<String>,
         received_at: String,
     ) -> Self {
-        Message { remote_id, sender, recipient, subject, body, received_at }
+        Message {
+            remote_id,
+            sender,
+            recipient,
+            subject,
+            body,
+            received_at,
+        }
     }
 
     pub fn remote_id(&self) -> &String {

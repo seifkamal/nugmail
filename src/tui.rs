@@ -1,12 +1,8 @@
-use dialoguer::{Select, theme::ColorfulTheme};
+use dialoguer::{theme::ColorfulTheme, Select};
 use std::io::{stdout, Write};
 use termion::{clear, cursor, screen};
 
-use nugmail::{
-    email::Address,
-    generator::Service,
-    storage::Store,
-};
+use nugmail::{email::Address, generator::Service, storage::Store};
 
 pub fn render_inbox<S: Store, C: Service>(address: Address, mut storage: S, client: C) {
     let inbox = client.inbox(&address).unwrap();
@@ -17,16 +13,28 @@ pub fn render_inbox<S: Store, C: Service>(address: Address, mut storage: S, clie
 
     loop {
         let mut screen = screen::AlternateScreen::from(stdout());
-        write!(screen, "{}{}{}", clear::All, cursor::Goto(1, 1), cursor::Hide).unwrap();
+        write!(
+            screen,
+            "{}{}{}",
+            clear::All,
+            cursor::Goto(1, 1),
+            cursor::Hide
+        )
+        .unwrap();
         screen.flush().unwrap();
 
         let theme = &ColorfulTheme::default();
         let mut select = Select::with_theme(theme);
         for message in inbox.messages() {
-            select.item(&format!("{}: {}", message.sender(), message.subject().unwrap()));
+            select.item(&format!(
+                "{}: {}",
+                message.sender(),
+                message.subject().unwrap()
+            ));
         }
 
-        let selection = select.with_prompt(&format!("{} messages", inbox.size()))
+        let selection = select
+            .with_prompt(&format!("{} messages", inbox.size()))
             .default(0)
             .interact_opt()
             .unwrap();
@@ -51,7 +59,7 @@ pub fn render_inbox<S: Store, C: Service>(address: Address, mut storage: S, clie
 
                 std::fs::remove_file(tmp_file).unwrap();
             }
-            None => break
+            None => break,
         }
     }
 }
