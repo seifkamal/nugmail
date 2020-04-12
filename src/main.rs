@@ -8,12 +8,20 @@ use nugmail::{
 };
 
 fn main() {
-    let matches = App::new("nug")
+    let matches = App::new("Nugmail")
+        .about("A client for generating disposable email addresses")
+        .version("0.1.0")
         .setting(AppSettings::SubcommandRequiredElseHelp)
-        .subcommand(SubCommand::with_name("list"))
-        .subcommand(SubCommand::with_name("new"))
-        .subcommand(
+        .subcommands(vec![
+            SubCommand::with_name("list")
+                .about("Display all generated addresses")
+                .version("0.1.0"),
+            SubCommand::with_name("new")
+                .about("Generate a new address")
+                .version("0.1.0"),
             SubCommand::with_name("inbox")
+                .about("View an address inbox")
+                .version("0.1.0")
                 .arg(
                     Arg::with_name("address")
                         .help("The email address to view the inbox for")
@@ -21,10 +29,10 @@ fn main() {
                         .required(true)
                         .takes_value(true)
                         .number_of_values(1)
-                )
-        )
-        .subcommand(
+                ),
             SubCommand::with_name("delete")
+                .about("Delete an address and its inbox")
+                .version("0.1.0")
                 .arg(
                     Arg::with_name("address")
                         .help("The email address to view the inbox for")
@@ -32,8 +40,8 @@ fn main() {
                         .required(true)
                         .takes_value(true)
                         .number_of_values(1)
-                )
-        )
+                ),
+        ])
         .get_matches();
 
     let mut storage: sqlite::Storage = Default::default();
