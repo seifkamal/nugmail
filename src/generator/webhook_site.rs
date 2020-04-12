@@ -36,7 +36,7 @@ struct TokenResponse {
 struct MessagesResponseItem {
     uuid: String,
     sender: String,
-    text_content: String,
+    text_content: Option<String>,
     created_at: String,
     headers: HashMap<String, Vec<String>>,
 }
@@ -67,7 +67,7 @@ impl Service for Client {
                 email::Address::from(item.sender.as_str()),
                 address.clone(),
                 item.headers["subject"].get(0).cloned(),
-                Some(item.text_content.clone()),
+                item.text_content.clone(),
                 item.created_at.clone(),
             ));
         }
