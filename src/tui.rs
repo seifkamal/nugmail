@@ -2,21 +2,20 @@ use crate::email::Address;
 use crate::generator::Service;
 use crate::storage::Store;
 use dialoguer::{theme::ColorfulTheme, Select};
-use termion::{clear, cursor, screen, input::TermRead};
-use std::io::{Write, stdin, stdout};
+use termion::{clear, cursor, screen};
+use std::io::{Write, stdout};
 
 pub fn render_inbox<S: Store, C: Service>(address: Address, mut storage: S, client: C) {
-    let updated_inbox = client.inbox(&address).unwrap();
-    storage.save_inbox(&updated_inbox).unwrap();
-    if updated_inbox.size() == 0 {
+    let inbox = client.inbox(&address).unwrap();
+    storage.save_inbox(&inbox).unwrap();
+    if inbox.size() == 0 {
         return println!("Inbox is empty");
     }
 
-    let mut screen = screen::AlternateScreen::from(stdout());
-    let inbox = storage.inbox(&address).unwrap();
-
     loop {
-        clear_screen(&mut screen);
+        let mut screen = screen::AlternateScreen::from(stdout());
+        write!(screen, "{}{}{}", clear::All, cursor::Goto(1, 1), cursor::Hide).unwrap();
+        screen.flush().unwrap();
 
         let theme = &ColorfulTheme::default();
         let mut select = Select::with_theme(theme);
@@ -26,29 +25,30 @@ pub fn render_inbox<S: Store, C: Service>(address: Address, mut storage: S, clie
 
         let selection = select.with_prompt(&format!("{} messages", inbox.size()))
             .default(0)
-            .paged(true)
             .interact_opt()
             .unwrap();
 
+        write!(screen, "{}{}", cursor::Show, screen::ToMainScreen).unwrap();
+
         match selection {
             Some(index) => {
-                clear_screen(&mut screen);
-                println!("{}", inbox.messages().get(index).unwrap());
+                let tmp_file = "nug.msg";
 
-                for c in stdin().keys() {
-                    if c.is_ok() {
-                        break;
-                    }
-                }
+                std::fs::File::create(tmp_file)
+                    .unwrap()
+                    .write_fmt(format_args!("{}", inbox.messages().get(index).unwrap()))
+                    .unwrap();
+
+                std::process::Command::new("less")
+                    .arg(tmp_file)
+                    .spawn()
+                    .unwrap()
+                    .wait()
+                    .unwrap();
+
+                std::fs::remove_file(tmp_file).unwrap();
             }
             None => break
         }
     }
-
-    write!(screen, "{}", cursor::Show).unwrap()
-}
-
-fn clear_screen<W: Write>(screen: &mut screen::AlternateScreen<W>) {
-    write!(screen, "{}{}{}", clear::All, cursor::Goto(1, 1), cursor::Hide).unwrap();
-    screen.flush().unwrap();
 }
