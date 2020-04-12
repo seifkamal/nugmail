@@ -1,9 +1,12 @@
-use crate::email::Address;
-use crate::generator::Service;
-use crate::storage::Store;
-use dialoguer::{theme::ColorfulTheme, Select};
+use dialoguer::{Select, theme::ColorfulTheme};
+use std::io::{stdout, Write};
 use termion::{clear, cursor, screen};
-use std::io::{Write, stdout};
+
+use nugmail::{
+    email::Address,
+    generator::Service,
+    storage::Store,
+};
 
 pub fn render_inbox<S: Store, C: Service>(address: Address, mut storage: S, client: C) {
     let inbox = client.inbox(&address).unwrap();

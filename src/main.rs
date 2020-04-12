@@ -1,14 +1,12 @@
-mod email;
-mod storage;
-mod generator;
 mod tui;
 
-use crate::email::Address;
-use crate::storage::{Store, sqlite};
-use crate::generator::Service;
 use clap::{App, AppSettings, Arg, SubCommand};
 
-type StdError = Box<dyn std::error::Error>;
+use nugmail::{
+    email::Address,
+    generator::{Service, webhook_site},
+    storage::{Store, sqlite},
+};
 
 fn main() {
     let matches = App::new("nug")
@@ -49,7 +47,7 @@ fn main() {
             }
         }
         ("new", _) => {
-            let client = generator::webhook_site::Client::new();
+            let client = webhook_site::Client::new();
             let address = client.generate().unwrap();
 
             println!("{}", address);
@@ -57,7 +55,7 @@ fn main() {
         }
         ("delete", Some(cmd)) => {
             let address = Address::from(cmd.value_of("address").unwrap());
-            let client = generator::webhook_site::Client::new();
+            let client = webhook_site::Client::new();
 
             client.delete(&address).unwrap();
             storage.delete_address(&address).unwrap();
@@ -65,7 +63,7 @@ fn main() {
         }
         ("inbox", Some(cmd)) => {
             let address = Address::from(cmd.value_of("address").unwrap());
-            let client = generator::webhook_site::Client::new();
+            let client = webhook_site::Client::new();
 
             tui::render_inbox(address, storage, client);
         }

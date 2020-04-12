@@ -1,14 +1,17 @@
-use crate::StdError;
-use crate::email::{Address, Inbox, Messages, Message};
-use crate::generator::Service;
-use isahc::*;
+use isahc::ResponseExt;
 use std::collections::HashMap;
+
+use crate::{
+    email,
+    generator::Service,
+    StdError,
+};
 
 trait Token {
     fn token(&self) -> &str;
 }
 
-impl Token for Address {
+impl Token for email::Address {
     fn token(&self) -> &str {
         self.as_str()[..36].as_ref()
     }
@@ -35,7 +38,7 @@ struct MessagesResponseItem {
     sender: String,
     text_content: String,
     created_at: String,
-    headers: HashMap<String, Vec<String>>
+    headers: HashMap<String, Vec<String>>,
 }
 
 #[derive(Debug, serde::Deserialize)]
@@ -44,36 +47,36 @@ struct MessagesResponse {
 }
 
 impl Service for Client {
-    fn generate(&self) -> Result<Address, StdError> {
-        let response = post(format!("{}/token", Self::API_URL), "")?.json::<TokenResponse>()?;
+    fn generate(&self) -> Result<email::Address, StdError> {
+        let response = isahc::post(format!("{}/token", Self::API_URL), "")?.json::<TokenResponse>()?;
         let address = format!("{}@{}", response.uuid, Self::EMAIL_DOMAIN);
-        Ok(Address::from(address.as_str()))
+        Ok(email::Address::from(address.as_str()))
     }
 
-    fn inbox(&self, address: &Address) -> Result<Inbox, StdError> {
-        let response = get(format!(
+    fn inbox(&self, address: &email::Address) -> Result<email::Inbox, StdError> {
+        let response = isahc::get(format!(
             "{}/token/{}/requests",
             Client::API_URL,
             address.token()
         ))?.json::<MessagesResponse>()?;
 
-        let mut messages = Messages::new();
+        let mut messages = email::Messages::new();
         for item in response.data.iter() {
-            messages.push(Message::new(
+            messages.push(email::Message::new(
                 item.uuid.clone(),
-                Address::from(item.sender.as_str()),
+                email::Address::from(item.sender.as_str()),
                 address.clone(),
                 item.headers["subject"].get(0).cloned(),
                 Some(item.text_content.clone()),
-                item.created_at.clone()
+                item.created_at.clone(),
             ));
         }
 
-        Ok(Inbox::new(address.clone(), messages))
+        Ok(email::Inbox::new(address.clone(), messages))
     }
 
-    fn delete(&self, address: &Address) -> Result<(), StdError> {
-        delete(format!(
+    fn delete(&self, address: &email::Address) -> Result<(), StdError> {
+        isahc::delete(format!(
             "{}/token/{}",
             Client::API_URL,
             address.token()

@@ -1,10 +1,9 @@
-use crate::StdError;
-use crate::email::{Address, Inbox};
+pub mod webhook_site;
+
+use crate::{email, StdError};
 
 pub trait Service {
-    fn generate(&self) -> Result<Address, StdError>;
-    fn inbox(&self, address: &Address) -> Result<Inbox, StdError>;
-    fn delete(&self, address: &Address) -> Result<(), StdError>;
+    fn generate(&self) -> Result<email::Address, StdError>;
+    fn inbox(&self, address: &email::Address) -> Result<email::Inbox, StdError>;
+    fn delete(&self, address: &email::Address) -> Result<(), StdError>;
 }
-
-pub mod webhook_site;
