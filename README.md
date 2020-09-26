@@ -7,7 +7,7 @@ A command line client for generating disposable email addresses.
 ### Cargo
 
 ```shell script
-cargo install --git https://github.com/safe-k/nugmail
+cargo install --git https://github.com/seifkamal/nugmail
 ```
 
 ## Usage
@@ -35,7 +35,7 @@ SUBCOMMANDS:
 This is currently a **WIP**; Some known issues are:
 - An inbox cannot be synced whilst in view (must exit and reenter)
 - Email messages are rendered using `less` (see
-[f226192](https://github.com/safe-k/nugmail/commit/f22619233eef6bfd3b65653cff95553789736b02))
+[f226192](https://github.com/seifkamal/nugmail/commit/f22619233eef6bfd3b65653cff95553789736b02))
 - Date values from email client are not converted to user timezone
 - Sending emails is not supported
 - Downloading attachments is not supported
